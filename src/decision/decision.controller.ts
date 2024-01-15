@@ -2,6 +2,7 @@ import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/
 import { DecisionService } from './decision.service';
 import { Decision } from 'src/entities/decision';
 import { DecisionDto } from 'src/entities/decision.dto';
+import { TagDto } from 'src/entities/tag.dto';
 
 @Controller('decision')
 export class DecisionController {
@@ -16,8 +17,8 @@ export class DecisionController {
         return this.decisionService.getByOwner(userEmail);
     }
     @Post()
-    async create(@Body() decisionDto: DecisionDto, @Query('userEmail') userEmail: string):Promise<Decision> {
-        return this.decisionService.create(decisionDto,userEmail);
+    async create(@Body() decisionDto: DecisionDto, @Body() tags: TagDto[], @Query('userEmail') userEmail: string):Promise<Decision> {
+        return this.decisionService.create(decisionDto,tags,userEmail);
     }
     @Delete(':id')
     async delete(@Param('id')id: string):Promise<Decision> {

@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { Decision } from 'src/entities/decision';
 import { DecisionDto } from 'src/entities/decision.dto';
 import { Neo4jService } from 'nest-neo4j/dist';
+import { TagDto } from 'src/entities/tag.dto';
 @Injectable()
 export class DecisionService {
     constructor(private readonly neo4jService: Neo4jService) {}
@@ -47,7 +48,7 @@ export class DecisionService {
         return decisions;
     }
     
-    async create(decisionDto: DecisionDto, userEmail: string): Promise<Decision> {
+    async create(decisionDto: DecisionDto, tags: TagDto[], userEmail: string): Promise<Decision> {
         const session = this.neo4jService.getWriteSession();
         const result = await session.run(
           `
@@ -61,7 +62,6 @@ export class DecisionService {
         const createdNodeId = result.records[0].get('nodeId').toNumber();
         const createdDecision =result.records[0].get('d').properties;
 
-        //console.log(result.records[0].get('d').properties);
         const d:Decision = {
             ...createdDecision,
             id:createdNodeId
