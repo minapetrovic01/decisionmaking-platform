@@ -8,6 +8,7 @@ import { CriteriaModule } from './criteria/criteria.module';
 import { UserModule } from './user/user.module';
 import { DecisionModule } from './decision/decision.module';
 import { Neo4jModule } from 'nest-neo4j/dist';
+import { TagModule } from './tag/tag.module';
 
 @Module({
   imports: [
@@ -18,7 +19,7 @@ import { Neo4jModule } from 'nest-neo4j/dist';
     username: 'neo4j',
     password: 'minamina',
     database: 'neo4j', }),
-    GqlModule, AlternativeModule, CriteriaModule, UserModule, DecisionModule
+    GqlModule, AlternativeModule, CriteriaModule, UserModule, DecisionModule, TagModule
   ],
   controllers: [AppController],
   providers: [AppService],
