@@ -10,14 +10,14 @@ export class AlternativeController {
     constructor(private alternativeService: AlternativeService) {}
     @Get()
     async getAll():Promise<Alternative[]> {
-        return null;
+        return this.alternativeService.getAll();
     }
     @Get(':decisionId')
     async getById(@Param('decisionId')decisionId: string):Promise<Alternative[]> {
-        return null;
+        return this.alternativeService.getById(decisionId);
     }
     @Post()
     async create(@Body() alternativeDto: AlternativeDto, @Query('decisionId') decisionId: string):Promise<Alternative> {
-        return null;
+        return this.alternativeService.create(alternativeDto,decisionId);
     }
 }
