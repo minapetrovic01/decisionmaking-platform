@@ -18,7 +18,7 @@ type Decision {
   alternatives: [Alternative!]! @relationship(type: "IS_PART_OF", direction: OUT)
   criterias: [Criteria!]! @relationship(type: "DESCRIBES", direction: OUT)
   owner: User! @relationship(type: "OWNS", direction: IN)
-  tags: [Tag!]! @relationship(type: "HAS", direction: OUT)
+  tags: [Tag!]! @relationship(type: "HAS", direction: IN)
 }
 type User {
   username: String!
@@ -31,7 +31,7 @@ type User {
 }
 type Tag {
   name: String!
-  decisions: [Decision!]! @relationship(type: "HAS", direction: IN)
+  decisions: [Decision!]! @relationship(type: "HAS", direction: OUT)
 }
 `;
 

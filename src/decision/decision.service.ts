@@ -3,9 +3,10 @@ import { Decision } from 'src/entities/decision';
 import { DecisionDto } from 'src/entities/decision.dto';
 import { Neo4jService } from 'nest-neo4j/dist';
 import { TagDto } from 'src/entities/tag.dto';
+import { TagService } from 'src/tag/tag.service';
 @Injectable()
 export class DecisionService {
-    constructor(private readonly neo4jService: Neo4jService) {}
+    constructor(private readonly neo4jService: Neo4jService, private readonly tagService: TagService) {}
     
     async getByTag(name: string): Promise<Decision[]> {
         const session = this.neo4jService.getReadSession();
@@ -50,24 +51,69 @@ export class DecisionService {
     
     async create(decisionDto: DecisionDto, tags: TagDto[], userEmail: string): Promise<Decision> {
         const session = this.neo4jService.getWriteSession();
+    
         const result = await session.run(
-          `
-          MATCH (u:User {email: $userEmail})
-          CREATE (d:Decision $decisionDto)-[:OWNS]->(u)
-          RETURN ID(d) as nodeId, d
-          `,
-          { decisionDto, userEmail }
+            `
+            MATCH (u:User {email: $userEmail})
+            CREATE (d:Decision $decisionDto)-[:OWNS]->(u)
+            RETURN ID(d) as nodeId, d
+            `,
+            { decisionDto, userEmail }
         );
-        
+    
         const createdNodeId = result.records[0].get('nodeId').toNumber();
-        const createdDecision =result.records[0].get('d').properties;
-
-        const d:Decision = {
+        const createdDecision = result.records[0].get('d').properties;
+    
+        const d: Decision = {
             ...createdDecision,
-            id:createdNodeId
+            id: createdNodeId
+        };
+    
+        for (const tagDto of tags) {
+            const tagName = tagDto.name;
+    
+            const tagNodeResult = await session.run(
+                `
+                MATCH (t:Tag {name: $tagName})
+                RETURN t
+                `,
+                { tagName }
+            );
+    
+            if (tagNodeResult.records.length > 0) {
+                const res=await session.run(
+                    `
+                    MATCH (d:Decision) WHERE ID(d) = $decisionId
+                    MATCH (t:Tag {name: $tagName})
+                    MERGE (d)-[:HAS]->(t)
+                    `,
+                    { decisionId: createdNodeId, tagName }
+                );
+                console.log("res ", res);
+            } else {
+                const newTagResult = await session.run(
+                    `
+                    CREATE (t:Tag {name: $tagName})
+                    RETURN t
+                    `,
+                    { tagName }
+                );
+    
+                const newTagNode = await newTagResult.records[0].get('t').properties;
+
+                await session.run(
+                    `
+                    MATCH (d:Decision) WHERE ID(d) = $decisionId
+                    MATCH (t:Tag {name: $tagName})
+                    MERGE (d)-[:HAS]->(t)
+                    `,
+                    { decisionId: createdNodeId, tagName }
+                );
+            }
         }
+    
         return d;
-      }
+    }
     
     async delete(id: string): Promise<Decision> {
         const session = this.neo4jService.getWriteSession();

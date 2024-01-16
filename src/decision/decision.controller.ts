@@ -17,8 +17,8 @@ export class DecisionController {
         return this.decisionService.getByOwner(userEmail);
     }
     @Post()
-    async create(@Body() decisionDto: DecisionDto, @Body() tags: TagDto[], @Query('userEmail') userEmail: string):Promise<Decision> {
-        return this.decisionService.create(decisionDto,tags,userEmail);
+    async create(@Body() requestBody: { decisionDto: DecisionDto, tags: TagDto[] }, @Query('userEmail') userEmail: string):Promise<Decision> {
+        return this.decisionService.create(requestBody.decisionDto,requestBody.tags,userEmail);
     }
     @Delete(':id')
     async delete(@Param('id')id: string):Promise<Decision> {
