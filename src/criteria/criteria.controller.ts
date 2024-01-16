@@ -11,16 +11,16 @@ export class CriteriaController {
 
     @Get()
     async getAll():Promise<Criteria[]> {
-        return null;
+        return this.criteriaService.getAll();
     }
     @Get(':decisionId')
     async getById(@Param('decisionId')decisionId: string):Promise<Criteria[]> {
-        return null;
+        return this.criteriaService.getById(decisionId);
     }
     
     @Post()
     async create(@Body() criteriaDto: CriteriaDto, @Query('decisionId') decisionId: string):Promise<Criteria> {
-        return null;
+        return this.criteriaService.create(criteriaDto, decisionId);
     }
 
 }
