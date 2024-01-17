@@ -13,11 +13,11 @@ import { TagModule } from './tag/tag.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }), 
-    Neo4jModule.forRoot({scheme: 'neo4j', // or 'neo4j'
-    host: 'localhost', // Neo4j server host
-    port: 7687,
-    username: 'neo4j',
-    password: 'minamina',
+    Neo4jModule.forRoot({scheme: 'neo4j', 
+    host: 'localhost', 
+    port: process.env.NEO4J_PORT,
+    username: process.env.NEO4j_USERNAME,
+    password: process.env.NEO4J_PASSWORD,
     database: 'neo4j', }),
     GqlModule, AlternativeModule, CriteriaModule, UserModule, DecisionModule, TagModule
   ],
