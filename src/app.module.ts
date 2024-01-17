@@ -9,6 +9,8 @@ import { UserModule } from './user/user.module';
 import { DecisionModule } from './decision/decision.module';
 import { Neo4jModule } from 'nest-neo4j/dist';
 import { TagModule } from './tag/tag.module';
+import { HistoryCacheService } from './history-cache/history-cache.service';
+import { UserCacheService } from './user-cache/user-cache.service';
 
 @Module({
   imports: [
@@ -22,6 +24,6 @@ import { TagModule } from './tag/tag.module';
     GqlModule, AlternativeModule, CriteriaModule, UserModule, DecisionModule, TagModule
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, HistoryCacheService, UserCacheService],
 })
 export class AppModule {}
