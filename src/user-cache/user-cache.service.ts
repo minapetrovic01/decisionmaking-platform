@@ -6,17 +6,10 @@ import { Decision } from 'src/entities/decision';
 @Injectable()
 export class UserCacheService {
 
-    private redisClient: Redis;
     private client: RedisClientType;
 
 
     constructor() {
-        const Redis = require('ioredis');
-
-        this.redisClient = new Redis({
-            host: 'localhost',
-            port: 6389,
-        });
 
         this.client = createClient({
             url: 'redis://localhost:6390',
@@ -45,7 +38,6 @@ export class UserCacheService {
             return JSON.parse(userJson);
         } else {
             this.client.disconnect();
-
             return null;
         }
     }   
@@ -58,9 +50,36 @@ export class UserCacheService {
         this.client.disconnect();
     }
 
+    async getUnfinishedDecision(userEmail: string): Promise<Decision | null> {
+        this.client.connect();
+        const userJson = await this.client.hGet(userEmail, 'unfinishedDecision');
+        if (userJson) {
+            this.client.disconnect();
+            return JSON.parse(userJson);
+        } else {
+            this.client.disconnect();
+            return null;
+        }
+    }
+
+    async setUnfinishedDecision(userEmail: string, decision: Decision): Promise<void> {
+        this.client.connect();
+
+        const decisionJson = JSON.stringify(decision);
+
+        await this.client.hSet(userEmail, 'unfinishedDecision', decisionJson);
+
+        this.client.disconnect();
+    }
+
+    async deleteUnfinishedDecision(userEmail: string): Promise<void> {
+        this.client.connect();
+
+        await this.client.hDel(userEmail, 'unfinishedDecision');
+
+        this.client.disconnect();
+    }
+
     
-
-
-
 
 }

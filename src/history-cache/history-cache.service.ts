@@ -12,16 +12,6 @@ export class HistoryCacheService {
     constructor() {
         const Redis = require('ioredis');
 
-         this.client = createClient({
-            url: 'redis://localhost:6390',
-        });
-
-        this.client.connect();
-
-        this.client.on('error', err => console.log('Redis Client Error', err));
-
-        this.client.disconnect();
-
         this.redisClient = new Redis({
             host: 'localhost',
             port: 6390,
