@@ -5,9 +5,29 @@ import { Neo4jService } from 'nest-neo4j/dist';
 
 @Injectable()
 export class UserService {
+    
     constructor(private readonly neo4jService: Neo4jService) {}
    
     async create(userDto: UserDto): Promise<User> {
+        //ako postoji user ne treba da se doda
+        const session2 = this.neo4jService.getReadSession();
+        const result2 = await session2.run(
+          `
+          MATCH (u:User {email: $email})
+          RETURN u
+          `,
+          { email: userDto.email }
+        );
+        try{
+          if (result2.records.length !== 0) {
+            throw new NotFoundException(`User with email ${userDto.email} already exists`);
+          }
+        }
+        catch(err){
+          console.log(err);
+          return this.getById(userDto.email);
+        }
+       
         const session = this.neo4jService.getWriteSession();
         const result = await session.run(
           `
@@ -84,4 +104,20 @@ export class UserService {
     
         return result.records[0].get('u').properties;
       }
+
+      signIn(email: any, password: any): Promise<User> {
+        console.log("usao u sign in");
+        console.log(email);
+        console.log(password);
+        this.getById(email).then(user => {
+          if(user.password === password) {
+            return user;
+          }
+        })
+        .catch(error => {
+          console.error('Error fetching user:', error);
+        });
+        return null;
+      
+    }
 }

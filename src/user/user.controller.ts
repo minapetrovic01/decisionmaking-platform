@@ -18,6 +18,13 @@ export class UserController {
     getAll(): Promise<User[]> {
         return this.userService.getAll();
     }
+
+    @Post('/signIn')
+    signIn(@Body() user: any):Promise<User> {
+        console.log(user);
+        return this.userService.signIn(user.email, user.password);
+    }
+
     @Get(':email')
     getById(@Param('email')email: string):Promise<User> {
         return this.userService.getById(email);

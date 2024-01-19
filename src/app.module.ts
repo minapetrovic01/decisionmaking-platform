@@ -24,6 +24,6 @@ import { UserCacheService } from './user-cache/user-cache.service';
     GqlModule, AlternativeModule, CriteriaModule, UserModule, DecisionModule, TagModule
   ],
   controllers: [AppController],
-  providers: [AppService, HistoryCacheService, UserCacheService],
+  providers: [AppService, HistoryCacheService],
 })
 export class AppModule {}
