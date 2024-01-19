@@ -2,11 +2,12 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { User } from 'src/entities/user';
 import { UserDto } from 'src/entities/user.dto';
 import { Neo4jService } from 'nest-neo4j/dist';
+import { UserCacheService } from 'src/user-cache/user-cache.service';
 
 @Injectable()
 export class UserService {
     
-    constructor(private readonly neo4jService: Neo4jService) {}
+    constructor(private readonly neo4jService: Neo4jService,private userCacheService: UserCacheService ) {}
    
       async create(userDto: UserDto): Promise<User> {
         //ako postoji user ne treba da se doda
@@ -48,7 +49,23 @@ export class UserService {
             RETURN u
             `
           );
-          return result.records.map(record => record.get('u').properties);
+
+          const userList :User[]=[];
+          result.records.map(async record => {
+            const userProperties = record.get('u').properties;
+            console.log("userProperties", userProperties);
+            const userSupportNumber =  await this.userCacheService.getUserSupports(userProperties.email);
+            console.log("usersSupportNumber", userSupportNumber);
+            const user:User =
+            {
+              ...userProperties,
+              supportNumber:userSupportNumber
+            }
+            userList.push(user);
+        });
+        return userList;
+
+          
         }
         catch(error)
         {
@@ -73,7 +90,12 @@ export class UserService {
             throw new NotFoundException(`User with email ${email} not found`);
           } 
           console.log(result.records[0].get('u').properties);
-          return result.records[0].get('u').properties;
+          const userSupportNumber =await this.userCacheService.getUserSupports(email);
+          const user:User ={
+            ...result.records[0].get('u').properties,
+            supportNumber:userSupportNumber
+          }
+          return user;
         }
         catch(error)
         {
@@ -116,7 +138,12 @@ export class UserService {
           throw new NotFoundException(`User with email ${email} not found`);
         }
     
-        return result.records[0].get('u').properties;
+          const userSupportNumber = await this.userCacheService.getUserSupports(email);
+          const user:User ={
+            ...result.records[0].get('u').properties,
+            supportNumber:userSupportNumber
+          }
+          return user;
       }
       
       async signIn(email: any, password: any): Promise<User | null> {

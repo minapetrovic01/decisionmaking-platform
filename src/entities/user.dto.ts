@@ -5,4 +5,5 @@ export class UserDto {
     email: string;
     password: string;
     job: string;
+    supportNumber:number;
 }

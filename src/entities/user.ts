@@ -7,5 +7,6 @@ export class User {
     email: string;
     password: string;
     job: string;
+    supportNumber:number;
     decisions: Decision[];
 }
