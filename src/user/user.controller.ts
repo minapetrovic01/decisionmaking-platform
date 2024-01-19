@@ -62,33 +62,6 @@ export class UserController {
         } 
     }
 
-    @Get('/unfinished/:email')
-    getUnfinishedDecision(@Param('email')email: string):Promise<Decision> {
-
-        try{
-            const unfinishedDec = this.userCacheService.getUnfinishedDecision(email);
-            return unfinishedDec;
-        }
-        catch(error)
-        {
-            console.error('Error getting unfinished decison information:', error);
-            throw new InternalServerErrorException('Error getting unfinished decison information.');
-        }
-    }
-
-    @Post('/unfinished/:email')
-    setUnfinishedDecision(@Param('email')email: string, @Body() decision: Decision):Promise<void> {
-        try{
-            const unfinishedDec = this.userCacheService.setUnfinishedDecision(email, decision);
-            return unfinishedDec;
-        }
-        catch(error)
-        {
-            console.error('Error setting unfinished decison information:', error);
-            throw new InternalServerErrorException('Error setting unfinished decison information.');
-        }
-    }
-
     @Get('/supports/:email')
     getUserSupports(@Param('email')email: string):Promise<number> {
 
@@ -116,19 +89,6 @@ export class UserController {
         }
     }
 
-    @Delete('/unfinished/:email')
-    deleteUnfinishedDecision(@Param('email')email: string):Promise<void> {
-        try 
-        {
-            const deleteDecision = this.userCacheService.deleteUnfinishedDecision(email);
-            return deleteDecision;
-        }
-        catch(error)
-        {
-            console.error('Error deleteing an unfinished decision', error);
-            throw new InternalServerErrorException('Error deleteing an unfinished decision.');
-        }
-    }
 
     @Post('/supports/down/:email')
     setUserSupportsDown(@Param('email')email: string):Promise<void> {

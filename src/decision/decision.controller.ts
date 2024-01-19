@@ -3,10 +3,11 @@ import { DecisionService } from './decision.service';
 import { Decision } from 'src/entities/decision';
 import { DecisionDto } from 'src/entities/decision.dto';
 import { TagDto } from 'src/entities/tag.dto';
+import { UserCacheService } from 'src/user-cache/user-cache.service';
 
 @Controller('decision')
 export class DecisionController {
-    constructor(private decisionService: DecisionService) {}
+    constructor(private decisionService: DecisionService, private userCacheService: UserCacheService,) {}
 
     @Get('/tagName/:name')
     async getByTag(@Param('name')name: string):Promise<Decision[]> {
@@ -20,6 +21,7 @@ export class DecisionController {
           throw new InternalServerErrorException('Error getting all decisons by tag.');
         }
     }
+    
     @Get('/owner/:userEmail')
     async getByOwner(@Param('userEmail')userEmail: string):Promise<Decision[]> {
         try{
@@ -32,6 +34,7 @@ export class DecisionController {
           throw new InternalServerErrorException('Error getting all decisons from owner.');
         }
     }
+
     @Post()
     async create(@Body() requestBody: { decisionDto: DecisionDto, tags: TagDto[] }, @Query('userEmail') userEmail: string):Promise<Decision> {
         try{
@@ -44,6 +47,7 @@ export class DecisionController {
           throw new InternalServerErrorException('Error creating decission.');
         }
     }
+
     @Delete(':id')
     async delete(@Param('id')id: string):Promise<Decision> {
         try{
@@ -56,6 +60,7 @@ export class DecisionController {
           throw new InternalServerErrorException('Error deleting decission.');
         }
     }
+
     @Put(':id')
     async update(@Param('id')id:string, @Body() decisionDto: DecisionDto):Promise<Decision> {
        try{
@@ -69,27 +74,44 @@ export class DecisionController {
        }
     }
 
-    @Post()
-    async createUnfinishedDecision(@Body() decision: Decision, @Query('userEmail') userEmail: string):Promise<Decision> {
-       try{
-            return null;
-       }
-       catch(error)
-       {
-         console.error('Error updating decission', error);
-         throw new InternalServerErrorException('Error updating decision.');
-       }
-    }
+    @Get('/unfinished/:email')
+    getUnfinishedDecision(@Param('email')email: string):Promise<Decision> {
 
-    @Post()
-    async deleteUnfinishedDecision(@Body() decision: Decision, @Query('userEmail') userEmail: string):Promise<Decision> {
         try{
-            return null;
+            const unfinishedDec = this.userCacheService.getUnfinishedDecision(email);
+            return unfinishedDec;
         }
         catch(error)
         {
-          console.error('Error deleting unfinished decision', error);
-          throw new InternalServerErrorException('Error deleting unfinished decision.');
+            console.error('Error getting unfinished decison information:', error);
+            throw new InternalServerErrorException('Error getting unfinished decison information.');
+        }
+    }
+
+    @Post('/unfinished/:email')
+    setUnfinishedDecision(@Param('email')email: string, @Body() decision: Decision):Promise<void> {
+        try{
+            const unfinishedDec = this.userCacheService.setUnfinishedDecision(email, decision);
+            return unfinishedDec;
+        }
+        catch(error)
+        {
+            console.error('Error setting unfinished decison information:', error);
+            throw new InternalServerErrorException('Error setting unfinished decison information.');
+        }
+    }
+    
+    @Delete('/unfinished/:email')
+    deleteUnfinishedDecision(@Param('email')email: string):Promise<void> {
+        try 
+        {
+            const deleteDecision = this.userCacheService.deleteUnfinishedDecision(email);
+            return deleteDecision;
+        }
+        catch(error)
+        {
+            console.error('Error deleteing an unfinished decision', error);
+            throw new InternalServerErrorException('Error deleteing an unfinished decision.');
         }
     }
 }
