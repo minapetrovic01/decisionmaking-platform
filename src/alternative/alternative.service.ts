@@ -10,19 +10,34 @@ export class AlternativeService {
 
     
     async getAll(): Promise<Alternative[]> {
+        try{
         const session = this.neo4jService.getReadSession();
         const result = await session.run('MATCH (a:Alternative) RETURN a');
         return result.records.map(record => record.get('a').properties);
+        }
+        catch(error)
+        {
+            console.error("Error getting all alternatives");
+            throw error;
+        }
     }
 
     async getById(decisionId: string): Promise<Alternative[]> {
+        try{
         const session = this.neo4jService.getReadSession();
         const result = await session.run(
             'MATCH (d:Decision)-[:IS_PART_OF]->(a:Alternative) WHERE ID(d) = toInteger($decisionId) RETURN a',
             { decisionId }
         );
         return result.records.map(record => record.get('a').properties);
+        }
+        catch(error)
+        {
+            console.error("Error fethcing alternatives for decision.");
+            throw error;
+        }
     }
+    
     async create(alternativeDto: AlternativeDto, decisionId: string): Promise<Alternative> {
         const session = this.neo4jService.getWriteSession();
         const result = await session.run(

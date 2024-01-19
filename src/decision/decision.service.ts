@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { Decision } from 'src/entities/decision';
 import { DecisionDto } from 'src/entities/decision.dto';
 import { Neo4jService } from 'nest-neo4j/dist';
@@ -17,7 +17,11 @@ export class DecisionService {
           `,
           { name }
         );
-    
+
+        if (result.records.length === 0) {
+            throw new NotFoundException(`Tag - ${name} not found`);
+        }
+
         const decisions:Decision[]=[];
         result.records.map(record => {
             const d:Decision={
@@ -26,10 +30,14 @@ export class DecisionService {
             };
             decisions.push(d);
         });
+
         return decisions;
+        
     }
     
     async getByOwner(userEmail: string): Promise<Decision[]> {
+        try{
+
         const session = this.neo4jService.getReadSession();
         const result = await session.run(
           `
@@ -38,6 +46,7 @@ export class DecisionService {
           `,
           { userEmail }
         );
+
         const decisions:Decision[]=[];
         result.records.map(record => {
             const d:Decision={
@@ -47,15 +56,20 @@ export class DecisionService {
             decisions.push(d);
         });
         return decisions;
+     }
+     catch(error)
+     {
+        console.error("Error with finding owners decisions", error);
+        throw error;
+     }
     }
     
     async create(decisionDto: DecisionDto, tags: TagDto[], userEmail: string): Promise<Decision> {
         const session = this.neo4jService.getWriteSession();
-    
         const result = await session.run(
             `
             MATCH (u:User {email: $userEmail})
-            CREATE (d:Decision $decisionDto)-[:OWNS]->(u)
+            CREATE (d:Decision $decisionDto)<-[:OWNS]-(u)
             RETURN ID(d) as nodeId, d
             `,
             { decisionDto, userEmail }
@@ -63,7 +77,10 @@ export class DecisionService {
     
         const createdNodeId = result.records[0].get('nodeId').toNumber();
         const createdDecision = result.records[0].get('d').properties;
-    
+
+        if(createdDecision.records.length === 0)
+        throw new InternalServerErrorException(`Error creating decision.`);
+
         const d: Decision = {
             ...createdDecision,
             id: createdNodeId
@@ -90,8 +107,9 @@ export class DecisionService {
                     { decisionId: createdNodeId, tagName }
                 );
                 console.log("res ", res);
-            } else {
-                const newTagResult = await session.run(
+            } 
+            else {
+                    const newTagResult = await session.run(
                     `
                     CREATE (t:Tag {name: $tagName})
                     RETURN t
@@ -100,6 +118,9 @@ export class DecisionService {
                 );
     
                 const newTagNode = await newTagResult.records[0].get('t').properties;
+
+                if(newTagNode.records.length === 0)
+                    throw new InternalServerErrorException(`Error creating a tag for the decision.`);
 
                 await session.run(
                     `
@@ -154,5 +175,6 @@ export class DecisionService {
             id:id
         }
         return d;
-      }
+    }
+
 }

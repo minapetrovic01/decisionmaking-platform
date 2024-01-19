@@ -8,12 +8,20 @@ export class TagService {
     constructor(private readonly neo4jService: Neo4jService) {}
 
   async getAll(): Promise<Tag[]> {
-    const session = this.neo4jService.getReadSession();
-    const result = await session.run('MATCH (t:Tag) RETURN t');
-    return result.records.map(record => record.get('t').properties);
+    try{  
+      const session = this.neo4jService.getReadSession();
+      const result = await session.run('MATCH (t:Tag) RETURN t');
+      return result.records.map(record => record.get('t').properties);
+    }
+    catch(error)
+    {
+      console.error('Error fetching tags:', error);
+      throw error; 
+    }
   }
 
   async getByName(name: string): Promise<Tag> {
+
     const session = this.neo4jService.getReadSession();
     const result = await session.run(
         'MATCH (t:Tag {name: $name}) RETURN t',
@@ -37,6 +45,7 @@ export class TagService {
 }
 
   async update(name: string, tag: TagDto): Promise<Tag> {
+
     const session = this.neo4jService.getWriteSession();
     const result = await session.run(
         'MATCH (t:Tag {name: $name}) SET t += $tag RETURN t'
@@ -63,6 +72,7 @@ export class TagService {
 
     return result.records[0].get('t').properties;
   }
+  
   async findOrCreateTag(name: string): Promise<Node> {
     const session = this.neo4jService.getWriteSession();
 

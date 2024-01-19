@@ -8,7 +8,7 @@ export class UserService {
     
     constructor(private readonly neo4jService: Neo4jService) {}
    
-    async create(userDto: UserDto): Promise<User> {
+      async create(userDto: UserDto): Promise<User> {
         //ako postoji user ne treba da se doda
         const session2 = this.neo4jService.getReadSession();
         const result2 = await session2.run(
@@ -36,39 +36,51 @@ export class UserService {
           `,
           { userDto }
         );
-    
         return result.records[0].get('u').properties;
       }
 
       async getAll(): Promise<User[]> {
-        const session = this.neo4jService.getReadSession();
-        const result = await session.run(
-          `
-          MATCH (u:User)
-          RETURN u
-          `
-        );
-    
-        return result.records.map(record => record.get('u').properties);
+        try{
+          const session = this.neo4jService.getReadSession();
+          const result = await session.run(
+            `
+            MATCH (u:User)
+            RETURN u
+            `
+          );
+          return result.records.map(record => record.get('u').properties);
+        }
+        catch(error)
+        {
+          console.error('Error fetching users:', error);
+          return null;
+        }
       }
     
       async getById(email: string): Promise<User> {
-        const session = this.neo4jService.getReadSession();
-        const result = await session.run(
-          `
-          MATCH (u:User {email: $email})
-          RETURN u
-          `,
-          { email }
-        );
-    
-        if (result.records.length === 0) {
-          throw new NotFoundException(`User with email ${email} not found`);
+        try{
+
+          const session = this.neo4jService.getReadSession();
+          const result = await session.run(
+            `
+            MATCH (u:User {email: $email})
+            RETURN u
+            `,
+            { email }
+          );
+      
+          if (result.records.length === 0) {
+            throw new NotFoundException(`User with email ${email} not found`);
+          } 
+          console.log(result.records[0].get('u').properties);
+          return result.records[0].get('u').properties;
+        }
+        catch(error)
+        {
+          console.error('Error fetching user:', error);
+          throw error;
         }
 
-        console.log(result.records[0].get('u').properties);
-    
-        return result.records[0].get('u').properties;
       }
     
       async delete(email: string): Promise<User> {
@@ -85,8 +97,8 @@ export class UserService {
         if (result.records.length === 0) {
           throw new NotFoundException(`User with email ${email} not found`);
         }
-    
         return result.records[0].get('u').properties;
+      
       }
     
       async update(email: string, userDto: UserDto): Promise<User> {
@@ -106,9 +118,8 @@ export class UserService {
     
         return result.records[0].get('u').properties;
       }
-
-    //  
-    async signIn(email: any, password: any): Promise<User | null> {
+      
+      async signIn(email: any, password: any): Promise<User | null> {
       console.log("Entering signIn");
       console.log(email);
       console.log(password);
@@ -125,7 +136,7 @@ export class UserService {
         }
       } catch (error) {
         console.error('Error fetching user:', error);
-        throw error; // Re-throw the error so it can be caught by the caller
+        throw error; 
       }
-    }
+      }
 }
