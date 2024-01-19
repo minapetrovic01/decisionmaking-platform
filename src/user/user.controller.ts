@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, InternalServerErrorException, Param, Post, Put } from '@nestjs/common';
 import { UserService } from './user.service';
 import { User } from 'src/entities/user';
 import { UserDto } from 'src/entities/user.dto';
@@ -20,9 +20,19 @@ export class UserController {
     }
 
     @Post('/signIn')
-    signIn(@Body() user: any):Promise<User> {
-        console.log(user);
-        return this.userService.signIn(user.email, user.password);
+    signIn(@Body() user: any):Promise<User|null> {
+        // const x= this.userService.signIn(user.email, user.password);
+        // console.log(x);
+        // return x;
+        try {
+            const signedInUser = this.userService.signIn(user.email, user.password);
+            console.log(signedInUser);
+            return signedInUser;
+          } catch (error) {
+            console.error('Error signing in:', error);
+            // Handle the error appropriately, e.g., return a specific HTTP status code
+            throw new InternalServerErrorException('Error signing in');
+          }
     }
 
     @Get(':email')

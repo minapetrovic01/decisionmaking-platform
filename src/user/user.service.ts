@@ -65,6 +65,8 @@ export class UserService {
         if (result.records.length === 0) {
           throw new NotFoundException(`User with email ${email} not found`);
         }
+
+        console.log(result.records[0].get('u').properties);
     
         return result.records[0].get('u').properties;
       }
@@ -105,19 +107,25 @@ export class UserService {
         return result.records[0].get('u').properties;
       }
 
-      signIn(email: any, password: any): Promise<User> {
-        console.log("usao u sign in");
-        console.log(email);
-        console.log(password);
-        this.getById(email).then(user => {
-          if(user.password === password) {
-            return user;
-          }
-        })
-        .catch(error => {
-          console.error('Error fetching user:', error);
-        });
-        return null;
-      
+    //  
+    async signIn(email: any, password: any): Promise<User | null> {
+      console.log("Entering signIn");
+      console.log(email);
+      console.log(password);
+    
+      try {
+        const user = await this.getById(email);
+    
+        if (user && user.password === password) {
+          console.log("Entering if statement");
+          return user;
+        } else {
+          console.log("Password does not match");
+          return null;
+        }
+      } catch (error) {
+        console.error('Error fetching user:', error);
+        throw error; // Re-throw the error so it can be caught by the caller
+      }
     }
 }
