@@ -19,68 +19,62 @@ export class UserCacheService {
 
         this.client.on('error', err => console.log('Redis Client Error', err));
 
-        this.client.disconnect();
     }
 
     async setUserSupportsUp(userEmail: string): Promise<void> {
-        this.client.connect();
 
         await this.client.hIncrBy(userEmail, 'supports', 1);
 
-        this.client.disconnect();
     }
 
     async getUserSupports(userEmail: string): Promise<number | null> {
-        this.client.connect();
+        ///this.client.connect();
         const userJson = await this.client.hGet(userEmail, 'supports');
         if (userJson) {
-            this.client.disconnect();
+           // this.client.disconnect();
             console.log("iz redisa - userjson", userJson);
             return JSON.parse(userJson);
         } else {
-            this.client.disconnect();
-            return null;
+            //this.client.disconnect();
+            console.log("iz redisa - userjson", userJson);
+            return 0;
         }
     }   
 
     async setUserSupportsDown(userEmail: string): Promise<void> {
-        this.client.connect();
 
         await this.client.hIncrBy(userEmail, 'supports', -1);
 
-        this.client.disconnect();
     }
 
     async getUnfinishedDecision(userEmail: string): Promise<Decision | null> {
-        this.client.connect();
         const userJson = await this.client.hGet(userEmail, 'unfinishedDecision');
         if (userJson) {
-            this.client.disconnect();
             return JSON.parse(userJson);
         } else {
-            this.client.disconnect();
             return null;
         }
     }
 
     async setUnfinishedDecision(userEmail: string, decision: Decision): Promise<void> {
-        this.client.connect();
 
         const decisionJson = JSON.stringify(decision);
 
         await this.client.hSet(userEmail, 'unfinishedDecision', decisionJson);
 
-        this.client.disconnect();
     }
 
     async deleteUnfinishedDecision(userEmail: string): Promise<void> {
-        this.client.connect();
 
         await this.client.hDel(userEmail, 'unfinishedDecision');
 
-        this.client.disconnect();
     }
 
-    
+    onModuleDestroy() {
+        // Disconnect the client when the module is destroyed (e.g., when the application shuts down)
+        if (this.client) {
+            this.client.disconnect();
+        }
+    }
 
 }

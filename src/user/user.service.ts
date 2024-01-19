@@ -51,18 +51,17 @@ export class UserService {
           );
 
           const userList :User[]=[];
-          result.records.map(async record => {
+          for (const record of result.records) {
             const userProperties = record.get('u').properties;
             console.log("userProperties", userProperties);
-            const userSupportNumber =  await this.userCacheService.getUserSupports(userProperties.email);
+            const userSupportNumber = await this.userCacheService.getUserSupports(userProperties.email);
             console.log("usersSupportNumber", userSupportNumber);
-            const user:User =
-            {
-              ...userProperties,
-              supportNumber:userSupportNumber
-            }
+            const user: User = {
+                ...userProperties,
+                supportNumber: userSupportNumber
+            };
             userList.push(user);
-        });
+        }
         return userList;
 
           

@@ -74,12 +74,13 @@ export class DecisionService {
             `,
             { decisionDto, userEmail }
         );
-    
+        if(result.records.length === 0)
+            throw new InternalServerErrorException(`Error creating decision.`);
+
         const createdNodeId = result.records[0].get('nodeId').toNumber();
         const createdDecision = result.records[0].get('d').properties;
 
-        if(createdDecision.records.length === 0)
-        throw new InternalServerErrorException(`Error creating decision.`);
+
 
         const d: Decision = {
             ...createdDecision,
@@ -118,10 +119,6 @@ export class DecisionService {
                 );
     
                 const newTagNode = await newTagResult.records[0].get('t').properties;
-
-                if(newTagNode.records.length === 0)
-                    throw new InternalServerErrorException(`Error creating a tag for the decision.`);
-
                 await session.run(
                     `
                     MATCH (d:Decision) WHERE ID(d) = $decisionId
