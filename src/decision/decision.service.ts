@@ -171,15 +171,13 @@ export class DecisionService {
     
     async delete(id: string): Promise<void> {
         try{
-
-        
         const session = this.neo4jService.getWriteSession();
         const result = await session.run(
           `
           MATCH (d:Decision) WHERE ID(d) = toInteger($id)
-          OPTIONAL MATCH (u )-[:OWNS]->(d:Decision)<-[:IS_PART_OF]-(a:Alternative)
-          OPTIONAL MATCH (u)-[:OWNS]->(d)<-[:DESCRIBES]-(c:Criteria)
-          DETACH DELETE u, d, a, c
+          OPTIONAL MATCH (d)<-[:IS_PART_OF]-(a:Alternative)
+          OPTIONAL MATCH (d)<-[:DESCRIBES]-(c:Criteria)
+          DETACH DELETE  d, a, c
           `,
           { id }
         );
