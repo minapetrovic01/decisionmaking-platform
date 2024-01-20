@@ -73,5 +73,9 @@ export class HistoryCacheService {
         const historyJson = JSON.stringify(history);
         await this.client.hSet(userEmail,"history", historyJson);
     }
-
+    onModuleDestroy() {
+        if (this.client) {
+            this.client.disconnect();
+        }
+    }
 }

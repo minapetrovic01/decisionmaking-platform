@@ -12,7 +12,7 @@ export class UserCacheService {
     constructor() {
 
         this.client = createClient({
-            url: 'redis://localhost:6390',
+            url: 'redis://localhost:6389',
         });
 
         this.client.connect();
@@ -28,13 +28,10 @@ export class UserCacheService {
     }
 
     async getUserSupports(userEmail: string): Promise<number | null> {
-        ///this.client.connect();
         const userJson = await this.client.hGet(userEmail, 'supports');
         if (userJson) {
-           // this.client.disconnect();
             return JSON.parse(userJson);
         } else {
-            //this.client.disconnect();
             return 0;
         }
     }   
@@ -69,7 +66,6 @@ export class UserCacheService {
     }
 
     onModuleDestroy() {
-        // Disconnect the client when the module is destroyed (e.g., when the application shuts down)
         if (this.client) {
             this.client.disconnect();
         }
