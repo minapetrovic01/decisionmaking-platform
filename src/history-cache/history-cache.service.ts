@@ -6,50 +6,72 @@ import { Decision } from 'src/entities/decision';
 @Injectable()
 export class HistoryCacheService {
 
-    private redisClient: Redis;
+    // private redisClient: Redis;
+    private client: RedisClientType;
+
 
     constructor() {
         const Redis = require('ioredis');
 
-        this.redisClient = new Redis({
-            host: 'localhost',
-            port: 6390,
+        this.client = createClient({
+            url: 'redis://localhost:6390',
         });
+
+        this.client.connect();
+
+        this.client.on('error', err => console.log('Redis Client Error', err));
+
+        // this.redisClient = new Redis({
+        //     host: 'localhost',
+        //     port: 6390,
+        // });
     }
 
    
     async setHistory(userEmail: string, history: Decision[]): Promise<void> {
-        // const currentHistoryJson = await this.redisClient.get(userEmail);
+        const currentHistoryJson = await this.client.hGet(userEmail,"history");
 
-        // const currentHistory: Decision[] = currentHistoryJson ? JSON.parse(currentHistoryJson) : [];
+        const currentHistory: Decision[] = currentHistoryJson ? JSON.parse(currentHistoryJson) : [];
 
-        // const updatedHistory = [...currentHistory, ...history];
+        const updatedHistory = [...currentHistory, ...history];
 
-        // console.log(userEmail)
+        console.log("updatedHistory", JSON.stringify(updatedHistory));
 
-        // console.log("updatedHistory", JSON.stringify(updatedHistory));
+        await this.client.hSet(userEmail, "history", JSON.stringify(updatedHistory));
 
-         this.redisClient.set(userEmail, JSON.stringify(history));
+         //this.redisClient.set(userEmail, JSON.stringify(history));
+
+        //  const existingHistoryJson = await this.redisClient.get(userEmail);
+        //  let existingHistory: Decision[] = existingHistoryJson ? JSON.parse(existingHistoryJson) : [];
+         
+        //  // Concatenate the existing history with new entries
+        //  existingHistory = existingHistory.concat(history);
+ 
+        //  // Store the updated history in Redis
+        //  const updatedHistoryJson = JSON.stringify(existingHistory);
+        //  await this.redisClient.set(userEmail, updatedHistoryJson);
+ 
         return;
     }
 
     async getHistory(userEmail: string): Promise<Decision[] | null> {
-        const historyJson = await this.redisClient.get(userEmail);
+        const historyJson = await this.client.hGet(userEmail,"history");
         if (historyJson) {
             console.log("historyJson", historyJson)
             return JSON.parse(historyJson);
         } else {
+            console.log("*************\n");
             return null;
         }
     }
 
     async deleteHistory(userEmail: string): Promise<void> {
-        await this.redisClient.del(userEmail);
+        await this.client.hDel(userEmail,"history");
     }
 
     async updateHistory(userEmail: string, history: Decision[]): Promise<void> {
         const historyJson = JSON.stringify(history);
-        await this.redisClient.set(userEmail, historyJson);
+        await this.client.hSet(userEmail,"history", historyJson);
     }
 
 }
