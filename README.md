@@ -18,7 +18,7 @@ $ npm install
 ## Running the app
 
 ```bash
-# watch mode - za pokretanje aplikacije i kontejnera da dokeru (kontejneri se automatski pokrecu u pozadini)
+# watch mode - za pokretanje aplikacije i kontejnera na dokeru (kontejneri se automatski pokrecu u pozadini)
 $ npm run start:dev
 ```
 
