@@ -83,7 +83,6 @@ export class TagService {
     }
 
     const newTagResult = await session.run('CREATE (t:Tag {name: $name}) RETURN t', { name });
-    console.log(newTagResult);
 
     if (newTagResult.records.length === 0) {
       throw new NotFoundException(`Failed to create or find tag with name ${name}`);
