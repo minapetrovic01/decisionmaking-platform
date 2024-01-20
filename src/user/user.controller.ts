@@ -4,7 +4,6 @@ import { User } from 'src/entities/user';
 import { UserDto } from 'src/entities/user.dto';
 import { Neo4jService } from 'nest-neo4j/dist';
 import { UserCacheService } from 'src/user-cache/user-cache.service';
-import { Decision } from 'src/entities/decision';
 
 @Controller('user')
 export class UserController {
@@ -104,10 +103,10 @@ export class UserController {
     }
 
     @Delete(':email')
-    delete(@Param('email')email: string):Promise<User> {
+    delete(@Param('email')email: string):Promise<void> {
         try{
             const deleteUser =  this.userService.delete(email);
-            return deleteUser;
+            return;
         }
         catch(error)
         {

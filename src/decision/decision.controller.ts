@@ -44,8 +44,8 @@ export class DecisionController {
         }
         catch(error)
         {
-          console.error('Error getting all decisons from owner:', error);
-          throw new InternalServerErrorException('Error getting all decisons from owner.');
+          console.error('Error getting all cached decisons from owner:', error);
+          throw new InternalServerErrorException('Error getting all  cached decisons from owner.');
         }
     }
 
@@ -58,8 +58,8 @@ export class DecisionController {
         }
         catch(error)
         {
-            console.error('Error deleteing an unfinished decision', error);
-            throw new InternalServerErrorException('Error deleteing an unfinished decision.');
+            console.error('Error deleteing an cached decisions', error);
+            throw new InternalServerErrorException('Error deleteing an cached decisions.');
         }
     }
 
@@ -78,10 +78,10 @@ export class DecisionController {
     }
 
     @Delete(':id')
-    async delete(@Param('id')id: string):Promise<Decision> {
+    async delete(@Param('id')id: string):Promise<void> {
         try{
             const deletedDecission = this.decisionService.delete(id);
-            return deletedDecission;
+            return;
         }
         catch(error)
         {

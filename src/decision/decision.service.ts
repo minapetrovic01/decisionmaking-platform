@@ -11,7 +11,6 @@ import { HistoryCacheService } from 'src/history-cache/history-cache.service';
 @Injectable()
 export class DecisionService {
     constructor(private readonly neo4jService: Neo4jService, 
-        private readonly tagService: TagService,
         private alternativeService:AlternativeService, 
         private criteriaService:CriteriaService,
         private userService: UserService,
@@ -29,7 +28,6 @@ export class DecisionService {
         );
 
         if (result.records.length === 0) {
-            // throw new NotFoundException(`Tag - ${name} not found`);
             return [];
         }
         const decisions: Decision[] = [];
@@ -146,7 +144,6 @@ export class DecisionService {
                     `,
                     { decisionId: createdNodeId, tagName }
                 );
-                console.log("res ", res);
             } 
             else {
                     const newTagResult = await session.run(
@@ -172,22 +169,29 @@ export class DecisionService {
         return d;
     }
     
-    async delete(id: string): Promise<Decision> {
+    async delete(id: string): Promise<void> {
+        try{
+
+        
         const session = this.neo4jService.getWriteSession();
         const result = await session.run(
           `
           MATCH (d:Decision) WHERE ID(d) = toInteger($id)
-          DETACH DELETE d
-          RETURN d
+          OPTIONAL MATCH (u )-[:OWNS]->(d:Decision)<-[:IS_PART_OF]-(a:Alternative)
+          OPTIONAL MATCH (u)-[:OWNS]->(d)<-[:DESCRIBES]-(c:Criteria)
+          DETACH DELETE u, d, a, c
           `,
           { id }
         );
+
+    }
+    catch(error)
+    {
+        console.error("Error when deleting decision.");
+        error.throw();
+    }
     
-        if (result.records.length === 0) {
-          throw new NotFoundException(`Decision with ID ${id} not found`);
-        }
-    
-        return result.records[0].get('d').properties;
+        return;
     }
     
     async update(id: string, decisionDto: DecisionDto): Promise<Decision> {

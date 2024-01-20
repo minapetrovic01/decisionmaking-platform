@@ -10,7 +10,6 @@ export class UserService {
     constructor(private readonly neo4jService: Neo4jService,private userCacheService: UserCacheService ) {}
    
       async create(userDto: UserDto): Promise<User> {
-        //ako postoji user ne treba da se doda
         const session2 = this.neo4jService.getReadSession();
         const result2 = await session2.run(
           `
@@ -102,7 +101,8 @@ export class UserService {
 
       }
     
-      async delete(email: string): Promise<User> {
+      async delete(email: string): Promise<void> {
+        try{
         const session = this.neo4jService.getWriteSession();
         const result = await session.run(
           `
@@ -117,11 +117,13 @@ export class UserService {
 
         this.userCacheService.deleteUnfinishedDecision(email);
         this.userCacheService.deleteSupports(email);
-    
-        if (result.records.length === 0) {
-          throw new NotFoundException(`User with email ${email} not found`);
         }
-        return result.records[0].get('u').properties;
+        catch(error)
+        {
+            console.error("Error when deleting decision.");
+            error.throw();
+        }
+        return;
       
       }
     

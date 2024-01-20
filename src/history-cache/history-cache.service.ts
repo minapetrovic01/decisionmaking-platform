@@ -1,12 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { Redis } from 'ioredis';
 import { RedisClientType, createClient } from 'redis';
 import { Decision } from 'src/entities/decision';
 
 @Injectable()
 export class HistoryCacheService {
 
-    // private redisClient: Redis;
     private client: RedisClientType;
 
 
@@ -20,11 +18,6 @@ export class HistoryCacheService {
         this.client.connect();
 
         this.client.on('error', err => console.log('Redis Client Error', err));
-
-        // this.redisClient = new Redis({
-        //     host: 'localhost',
-        //     port: 6390,
-        // });
     }
 
    
