@@ -10,10 +10,10 @@ import { HistoryCacheService } from 'src/history-cache/history-cache.service';
 export class DecisionController {
     constructor(private decisionService: DecisionService, private userCacheService: UserCacheService,private historyCacheService:HistoryCacheService) {}
 
-    @Get('/tagName/:name')
-    async getByTag(@Param('name')name: string):Promise<Decision[]> {
+    @Get('/tagName/:name/:email')
+    async getByTag(@Param('name')name: string,@Param('email')email: string):Promise<Decision[]> {
         try{
-            return this.decisionService.getByTag(name);
+            return this.decisionService.getByTag(name,email);
             
         }
         catch(error)

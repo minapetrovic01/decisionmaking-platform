@@ -17,7 +17,7 @@ export class DecisionService {
         private userService: UserService,
         private historyCacheService:HistoryCacheService) {}
     
-    async getByTag(name: string): Promise<Decision[]> {
+    async getByTag(name: string,email:string): Promise<Decision[]> {
         const session = this.neo4jService.getReadSession();
         const result = await session.run(
           `
@@ -47,15 +47,15 @@ export class DecisionService {
                 const alternatives = await this.alternativeService.getById(d.id.toString());
                 d.alternatives = alternatives;
 
-                // const owner=await this.userService.getById(d.owner.email);
-                // d.owner=owner;
+                const owner=await this.userService.getById(d.owner.email);
+                d.owner.supportNumber=owner.supportNumber;
     
                 decisions.push(d);
             })
         );
 
         if(decisions.length>0)
-            this.historyCacheService.setHistory(decisions[0].owner.email, decisions);
+            this.historyCacheService.setHistory(email, decisions);
 
         return decisions;
         

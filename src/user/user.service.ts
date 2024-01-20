@@ -37,6 +37,7 @@ export class UserService {
           `,
           { userDto }
         );
+        this.userCacheService.setUserSupportsUp(userDto.email);
         return result.records[0].get('u').properties;
       }
 
@@ -53,9 +54,7 @@ export class UserService {
           const userList :User[]=[];
           for (const record of result.records) {
             const userProperties = record.get('u').properties;
-            console.log("userProperties", userProperties);
             const userSupportNumber = await this.userCacheService.getUserSupports(userProperties.email);
-            console.log("usersSupportNumber", userSupportNumber);
             const user: User = {
                 ...userProperties,
                 supportNumber: userSupportNumber
@@ -88,7 +87,6 @@ export class UserService {
           if (result.records.length === 0) {
             throw new NotFoundException(`User with email ${email} not found`);
           } 
-          console.log(result.records[0].get('u').properties);
           const userSupportNumber =await this.userCacheService.getUserSupports(email);
           const user:User ={
             ...result.records[0].get('u').properties,
@@ -109,11 +107,16 @@ export class UserService {
         const result = await session.run(
           `
           MATCH (u:User {email: $email})
-          DETACH DELETE u
-          RETURN u
+          OPTIONAL MATCH (u )-[:OWNS]->(d:Decision)<-[:IS_PART_OF]-(a:Alternative)
+          OPTIONAL MATCH (u)-[:OWNS]->(d)<-[:DESCRIBES]-(c:Criteria)
+          DETACH DELETE u, d, a, c
+          RETURN u;
           `,
           { email }
         );
+
+        this.userCacheService.deleteUnfinishedDecision(email);
+        this.userCacheService.deleteSupports(email);
     
         if (result.records.length === 0) {
           throw new NotFoundException(`User with email ${email} not found`);

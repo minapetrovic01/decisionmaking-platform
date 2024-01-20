@@ -65,6 +65,12 @@ export class UserCacheService {
 
     }
 
+    async deleteSupports(userEmail: string): Promise<void> {
+            
+            await this.client.hDel(userEmail, 'supports');
+    
+        }
+
     onModuleDestroy() {
         if (this.client) {
             this.client.disconnect();

@@ -35,21 +35,7 @@ export class HistoryCacheService {
 
         const updatedHistory = [...currentHistory, ...history];
 
-        console.log("updatedHistory", JSON.stringify(updatedHistory));
-
         await this.client.hSet(userEmail, "history", JSON.stringify(updatedHistory));
-
-         //this.redisClient.set(userEmail, JSON.stringify(history));
-
-        //  const existingHistoryJson = await this.redisClient.get(userEmail);
-        //  let existingHistory: Decision[] = existingHistoryJson ? JSON.parse(existingHistoryJson) : [];
-         
-        //  // Concatenate the existing history with new entries
-        //  existingHistory = existingHistory.concat(history);
- 
-        //  // Store the updated history in Redis
-        //  const updatedHistoryJson = JSON.stringify(existingHistory);
-        //  await this.redisClient.set(userEmail, updatedHistoryJson);
  
         return;
     }
@@ -57,11 +43,9 @@ export class HistoryCacheService {
     async getHistory(userEmail: string): Promise<Decision[] | null> {
         const historyJson = await this.client.hGet(userEmail,"history");
         if (historyJson) {
-            console.log("historyJson", historyJson)
             return JSON.parse(historyJson);
         } else {
-            console.log("*************\n");
-            return null;
+            return [];
         }
     }
 
