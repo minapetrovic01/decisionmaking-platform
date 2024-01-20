@@ -4,32 +4,58 @@ import { DecisionDto } from 'src/entities/decision.dto';
 import { Neo4jService } from 'nest-neo4j/dist';
 import { TagDto } from 'src/entities/tag.dto';
 import { TagService } from 'src/tag/tag.service';
+import { AlternativeService } from 'src/alternative/alternative.service';
+import { CriteriaService } from 'src/criteria/criteria.service';
+import { UserService } from 'src/user/user.service';
+import { HistoryCacheService } from 'src/history-cache/history-cache.service';
 @Injectable()
 export class DecisionService {
-    constructor(private readonly neo4jService: Neo4jService, private readonly tagService: TagService) {}
+    constructor(private readonly neo4jService: Neo4jService, 
+        private readonly tagService: TagService,
+        private alternativeService:AlternativeService, 
+        private criteriaService:CriteriaService,
+        private userService: UserService,
+        private historyCacheService:HistoryCacheService) {}
     
     async getByTag(name: string): Promise<Decision[]> {
         const session = this.neo4jService.getReadSession();
         const result = await session.run(
           `
           MATCH (d:Decision)-[:HAS]->(t:Tag {name: $name})
-          RETURN ID(d) as nodeId, d
+          OPTIONAL MATCH (d:Decision)<-[:OWNS]-(u:User)
+          RETURN ID(d) as nodeId, d, u
           `,
           { name }
         );
 
         if (result.records.length === 0) {
-            throw new NotFoundException(`Tag - ${name} not found`);
+            // throw new NotFoundException(`Tag - ${name} not found`);
+            return [];
         }
+        const decisions: Decision[] = [];
+        await Promise.all(
+            result.records.map(async (record) => {
+                const d: Decision = {
+                    ...record.get('d').properties,
+                    id: record.get('nodeId').toNumber(),
+                    owner: {...record.get('u').properties}
+                };
+    
+                const criteria = await this.criteriaService.getById(d.id.toString());
+                d.criterias = criteria;
+    
+                const alternatives = await this.alternativeService.getById(d.id.toString());
+                d.alternatives = alternatives;
 
-        const decisions:Decision[]=[];
-        result.records.map(record => {
-            const d:Decision={
-                ...record.get('d').properties,
-                id: record.get('nodeId').toNumber()
-            };
-            decisions.push(d);
-        });
+                // const owner=await this.userService.getById(d.owner.email);
+                // d.owner=owner;
+    
+                decisions.push(d);
+            })
+        );
+
+        if(decisions.length>0)
+            this.historyCacheService.setHistory(decisions[0].owner.email, decisions);
 
         return decisions;
         
@@ -42,19 +68,32 @@ export class DecisionService {
         const result = await session.run(
           `
           MATCH (d:Decision)<-[:OWNS]-(u:User {email: $userEmail})
-          RETURN ID(d) as nodeId, d
+          OPTIONAL MATCH (d:Decision)<-[:OWNS]-(u:User)
+          RETURN ID(d) as nodeId, d,u
           `,
           { userEmail }
         );
 
-        const decisions:Decision[]=[];
-        result.records.map(record => {
-            const d:Decision={
-                ...record.get('d').properties,
-                id: record.get('nodeId').toNumber()
-            };
-            decisions.push(d);
-        });
+        const decisions: Decision[] = [];
+        await Promise.all(
+            result.records.map(async (record) => {
+                const d: Decision = {
+                    ...record.get('d').properties,
+                    id: record.get('nodeId').toNumber(),
+                    owner: {...record.get('u').properties}
+
+                };
+    
+                const criteria = await this.criteriaService.getById(d.id.toString());
+                d.criterias = criteria;
+    
+                const alternatives = await this.alternativeService.getById(d.id.toString());
+                d.alternatives = alternatives;
+
+                decisions.push(d);
+            })
+        );
+
         return decisions;
      }
      catch(error)

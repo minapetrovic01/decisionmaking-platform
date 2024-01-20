@@ -7,7 +7,6 @@ import { Decision } from 'src/entities/decision';
 export class HistoryCacheService {
 
     private redisClient: Redis;
-    private client: RedisClientType;
 
     constructor() {
         const Redis = require('ioredis');
@@ -20,13 +19,24 @@ export class HistoryCacheService {
 
    
     async setHistory(userEmail: string, history: Decision[]): Promise<void> {
-        const historyJson = JSON.stringify(history);
-        await this.redisClient.set(userEmail, historyJson);
+        // const currentHistoryJson = await this.redisClient.get(userEmail);
+
+        // const currentHistory: Decision[] = currentHistoryJson ? JSON.parse(currentHistoryJson) : [];
+
+        // const updatedHistory = [...currentHistory, ...history];
+
+        // console.log(userEmail)
+
+        // console.log("updatedHistory", JSON.stringify(updatedHistory));
+
+         this.redisClient.set(userEmail, JSON.stringify(history));
+        return;
     }
 
     async getHistory(userEmail: string): Promise<Decision[] | null> {
         const historyJson = await this.redisClient.get(userEmail);
         if (historyJson) {
+            console.log("historyJson", historyJson)
             return JSON.parse(historyJson);
         } else {
             return null;

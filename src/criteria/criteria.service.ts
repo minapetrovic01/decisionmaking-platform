@@ -25,7 +25,7 @@ export class CriteriaService {
         try{
         const session = this.neo4jService.getReadSession();
         const result = await session.run(
-            'MATCH (d:Decision)-[:DESCRIBES]->(c:Criteria) WHERE ID(d) = toInteger($decisionId) RETURN c',
+            'MATCH (d:Decision)<-[:DESCRIBES]-(c:Criteria) WHERE ID(d) = toInteger($decisionId) RETURN c',
             { decisionId }
         );
         return result.records.map(record => record.get('c').properties);

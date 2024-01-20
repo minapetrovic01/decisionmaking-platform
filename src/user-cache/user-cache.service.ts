@@ -32,11 +32,9 @@ export class UserCacheService {
         const userJson = await this.client.hGet(userEmail, 'supports');
         if (userJson) {
            // this.client.disconnect();
-            console.log("iz redisa - userjson", userJson);
             return JSON.parse(userJson);
         } else {
             //this.client.disconnect();
-            console.log("iz redisa - userjson", userJson);
             return 0;
         }
     }   

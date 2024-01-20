@@ -26,13 +26,15 @@ export class AlternativeService {
         try{
         const session = this.neo4jService.getReadSession();
         const result = await session.run(
-            'MATCH (d:Decision)-[:IS_PART_OF]->(a:Alternative) WHERE ID(d) = toInteger($decisionId) RETURN a',
+            'MATCH (d:Decision)<-[:IS_PART_OF]-(a:Alternative) WHERE ID(d) = toInteger($decisionId) RETURN a',
             { decisionId }
         );
-        return result.records.map(record => record.get('a').properties);
+        const toReturn=result.records.map(record => record.get('a').properties);
+        return toReturn;
         }
         catch(error)
         {
+            console.log(error);
             console.error("Error fethcing alternatives for decision.");
             throw error;
         }

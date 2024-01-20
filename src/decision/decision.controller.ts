@@ -4,16 +4,17 @@ import { Decision } from 'src/entities/decision';
 import { DecisionDto } from 'src/entities/decision.dto';
 import { TagDto } from 'src/entities/tag.dto';
 import { UserCacheService } from 'src/user-cache/user-cache.service';
+import { HistoryCacheService } from 'src/history-cache/history-cache.service';
 
 @Controller('decision')
 export class DecisionController {
-    constructor(private decisionService: DecisionService, private userCacheService: UserCacheService,) {}
+    constructor(private decisionService: DecisionService, private userCacheService: UserCacheService,private historyCacheService:HistoryCacheService) {}
 
     @Get('/tagName/:name')
     async getByTag(@Param('name')name: string):Promise<Decision[]> {
         try{
-            const decList =  this.decisionService.getByTag(name);
-            return decList;
+            return this.decisionService.getByTag(name);
+            
         }
         catch(error)
         {
@@ -34,6 +35,34 @@ export class DecisionController {
           throw new InternalServerErrorException('Error getting all decisons from owner.');
         }
     }
+
+    @Get('/cached/:userEmail')
+    async getCachedDecisions(@Param('userEmail')userEmail: string):Promise<Decision[]> {
+        try{
+            const decList = this.historyCacheService.getHistory(userEmail);
+            return decList;
+        }
+        catch(error)
+        {
+          console.error('Error getting all decisons from owner:', error);
+          throw new InternalServerErrorException('Error getting all decisons from owner.');
+        }
+    }
+
+    @Delete('/cached/:email')
+    deleteCachedDecisions(@Param('email')email: string):Promise<void> {
+        try 
+        {
+            const deleteDecision = this.historyCacheService.deleteHistory(email);
+            return deleteDecision;
+        }
+        catch(error)
+        {
+            console.error('Error deleteing an unfinished decision', error);
+            throw new InternalServerErrorException('Error deleteing an unfinished decision.');
+        }
+    }
+
 
     @Post()
     async create(@Body() requestBody: { decisionDto: DecisionDto, tags: TagDto[] }, @Query('userEmail') userEmail: string):Promise<Decision> {
